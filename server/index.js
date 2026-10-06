@@ -1,12 +1,24 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Load environment variables from .env
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Explicitly load server/.env so it works regardless of current working directory
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Check API key presence and print length only (never the key itself)
+const geminiKey = process.env.GEMINI_API_KEY;
+const openaiKey = process.env.OPENAI_API_KEY;
+const activeKey = geminiKey || openaiKey;
+const activeKeyName = geminiKey ? 'GEMINI_API_KEY' : (openaiKey ? 'OPENAI_API_KEY' : 'NONE');
+console.log(`API key (${activeKeyName}) present: ${Boolean(activeKey)}, length: ${activeKey ? activeKey.length : 0}`);
 
 // Enable CORS for frontend requests
 app.use(cors());
@@ -42,14 +54,6 @@ function stripMarkdownFences(str) {
   return trimmed;
 }
 
-/**
- * Validates the parsed postcard object against the required schema:
- * - mood: string
- * - palette: array of exactly 4 hex colors
- * - shapes: one of waves, circles, mountains, stars, grid
- * - density: number from 0 to 1
- * - caption: string under 8 words
- */
 /**
  * Validates the parsed postcard object against the required schema:
  * - mood: string
@@ -105,13 +109,11 @@ function validatePostcard(data) {
 
 /**
  * Calls the LLM to analyze the dictated text and produce postcard parameters.
- * Kept in this single function so the provider (e.g. OpenAI, Anthropic, Gemini) can be swapped easily.
+ * Supports Gemini and OpenAI providers depending on which API key is configured.
  */
 async function callLLM(text) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not defined in environment variables');
-  }
+  const geminiApiKey = process.env.GEMINI_API_KEY;
+  const openaiApiKey = process.env.OPENAI_API_KEY;
 
   const prompt = `You are a postcard generator. Analyze the following dictation about someone's day and return art parameters.
 
@@ -126,32 +128,65 @@ Respond with ONLY raw JSON matching this schema (no markdown, no explanations):
   "caption": "short caption under 8 words"
 }`;
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You return ONLY valid JSON matching the exact schema requested.',
-        },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.7,
-    }),
-  });
+  // Priority 1: Google Gemini API (native REST endpoint)
+  if (geminiApiKey) {
+    const model = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite-preview';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
 
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`LLM provider error (${response.status}): ${errorBody}`);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`LLM provider error (${response.status}): ${errorBody}`);
+    }
+
+    const result = await response.json();
+    return result.candidates?.[0]?.content?.parts?.[0]?.text || '';
   }
 
-  const result = await response.json();
-  return result.choices?.[0]?.message?.content || '';
+  // Priority 2: OpenAI API
+  if (openaiApiKey) {
+    const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${openaiApiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You return ONLY valid JSON matching the exact schema requested.',
+          },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`LLM provider error (${response.status}): ${errorBody}`);
+    }
+
+    const result = await response.json();
+    return result.choices?.[0]?.message?.content || '';
+  }
+
+  throw new Error('Neither GEMINI_API_KEY nor OPENAI_API_KEY is defined in environment variables');
 }
 
 // POST /postcard endpoint
