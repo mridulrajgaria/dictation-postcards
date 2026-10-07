@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PostcardCanvas from './components/PostcardCanvas';
+import StampAndPostmark from './components/StampAndPostmark';
 
 function App() {
   // User's dictated input text
@@ -12,6 +13,8 @@ function App() {
   const [error, setError] = useState(null);
   // Debug JSON panel toggle
   const [showDebug, setShowDebug] = useState(false);
+  // Key to re-trigger stamp animation on each generation
+  const [stampKey, setStampKey] = useState(0);
 
   // Send dictation text to backend POST /postcard endpoint
   const handleGenerate = async () => {
@@ -35,6 +38,7 @@ function App() {
 
       const data = await response.json();
       setPostcardData(data);
+      setStampKey((prev) => prev + 1);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -47,6 +51,9 @@ function App() {
       {/* 3:2 Paper Postcard in the Center of the Desk */}
       <div className="postcard-wrapper">
         <div className="postcard-card">
+          {/* Step 2: Animated stamp & postmark landing on corner after generate succeeds */}
+          {postcardData && <StampAndPostmark key={stampKey} show={true} />}
+
           {/* Handwritten message area with Caveat font */}
           <textarea
             className="postcard-textarea"

@@ -197,3 +197,192 @@ html, body {
   word-break: break-all;
   font-family: ui-monospace, Menlo, Consolas, monospace;
 }
+
+/* =========================================
+   Step 2: Stamp & Circular Postmark Styles
+   ========================================= */
+.stamp-postmark-container {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  width: 170px;
+  height: 115px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Postage Stamp */
+.vintage-stamp {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 76px;
+  height: 96px;
+  background-color: #f7f3e8;
+  /* Perforated postage edge simulation */
+  border: 2px dashed #a83232;
+  outline: 4px solid #f7f3e8;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), inset 0 0 10px rgba(180, 50, 50, 0.08);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  animation: stampSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
+  transform-origin: center center;
+}
+
+.stamp-inner {
+  flex: 1;
+  border: 1px solid #a83232;
+  background: #fbf8f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 2px;
+  color: #8c2626;
+  text-align: center;
+}
+
+.stamp-header {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.stamp-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stamp-center svg {
+  color: #a83232;
+}
+
+.stamp-title {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.stamp-caption {
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  border-top: 1px solid #d4a5a5;
+  width: 100%;
+  padding-top: 2px;
+}
+
+/* Circular Postmark Cancellation Mark */
+.circular-postmark {
+  position: absolute;
+  top: 6px;
+  right: 50px;
+  width: 105px;
+  height: 105px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2b1f17;
+  opacity: 0.82;
+  animation: postmarkSlam 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.2) 0.12s forwards;
+  opacity: 0;
+  transform-origin: center center;
+}
+
+.postmark-outer-ring {
+  width: 86px;
+  height: 86px;
+  border: 1.5px solid #2b1f17;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+}
+
+.postmark-inner-ring {
+  width: 72px;
+  height: 72px;
+  border: 1px dashed #2b1f17;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.postmark-city {
+  font-size: 6.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.postmark-date {
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  margin: 3px 0;
+  border-top: 1px solid #2b1f17;
+  border-bottom: 1px solid #2b1f17;
+  padding: 1px 2px;
+}
+
+.postmark-sub {
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+.postmark-waves {
+  position: absolute;
+  right: -32px;
+  top: 32px;
+  opacity: 0.78;
+}
+
+/* Stamp landing animations with quick scale and rotate */
+@keyframes stampSlam {
+  0% {
+    transform: scale(2.5) rotate(-24deg);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(0.96) rotate(4deg);
+    opacity: 1;
+  }
+  82% {
+    transform: scale(1.03) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(3deg);
+    opacity: 0.98;
+  }
+}
+
+@keyframes postmarkSlam {
+  0% {
+    transform: scale(2.3) rotate(28deg);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(0.95) rotate(-11deg);
+    opacity: 0.88;
+  }
+  82% {
+    transform: scale(1.03) rotate(-8deg);
+    opacity: 0.88;
+  }
+  100% {
+    transform: scale(1) rotate(-9deg);
+    opacity: 0.84;
+  }
+}
+
