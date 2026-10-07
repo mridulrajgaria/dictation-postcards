@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import PostcardCanvas from './components/PostcardCanvas';
 import StampAndPostmark from './components/StampAndPostmark';
+import CorkboardGallery from './components/CorkboardGallery';
 import {
   playStampSound,
   playRustleSound,
   getInitialMuteState,
   saveMuteState,
 } from './utils/sound';
+import {
+  loadSavedPostcards,
+  savePostcardToGallery,
+} from './utils/galleryStorage';
 
 function App() {
   // User's dictated input text
@@ -25,6 +30,13 @@ function App() {
   const [isFlipped, setIsFlipped] = useState(true);
   // Mute state for audio (persisted in localStorage)
   const [isMuted, setIsMuted] = useState(getInitialMuteState);
+  // Gallery archive of past postcards loaded from localStorage
+  const [gallery, setGallery] = useState(() => loadSavedPostcards());
+  // Active selected postcard ID in gallery
+  const [activeCardId, setActiveCardId] = useState(null);
+
+  // Ref to canvas component for downloading PNG and saving thumbnail
+  const canvasRef = useRef(null);
 
   // Toggle mute state
   const toggleMute = () => {
@@ -68,6 +80,24 @@ function App() {
 
       // Automatically flip to front to show the generative art
       setIsFlipped(false);
+
+      // Save to gallery archive
+      const newId = 'postcard_' + Date.now();
+      setActiveCardId(newId);
+
+      // Extract canvas PNG data URL and persist to localStorage gallery
+      setTimeout(() => {
+        const dataUrl = canvasRef.current?.toDataURL?.();
+        const updatedGallery = savePostcardToGallery({
+          id: newId,
+          dataUrl: dataUrl || null,
+          postcardData: data,
+          text,
+          caption: data.caption,
+          date: new Date().toISOString(),
+        });
+        setGallery(updatedGallery);
+      }, 350);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -81,6 +111,34 @@ function App() {
     setIsFlipped((prev) => !prev);
   };
 
+  // Download front canvas as PNG file
+  const handleDownloadPng = (e) => {
+    if (e) e.stopPropagation();
+    const dataUrl = canvasRef.current?.toDataURL?.();
+    if (!dataUrl) return;
+
+    const safeCaption = (postcardData?.caption || 'postcard')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 24);
+
+    const link = document.createElement('a');
+    link.download = `dictation-${safeCaption}-${Date.now()}.png`;
+    link.href = dataUrl;
+    link.click();
+  };
+
+  // Load a postcard from the corkboard gallery archive
+  const handleSelectGalleryItem = (item) => {
+    if (!item) return;
+    setPostcardData(item.postcardData);
+    setText(item.text || '');
+    setActiveCardId(item.id);
+    setIsFlipped(false); // Show front art
+    playRustleSound(isMuted);
+  };
+
   return (
     <div className="desk-scene">
       {/* Audio Mute Toggle Button */}
@@ -92,6 +150,7 @@ function App() {
       >
         {isMuted ? '🔇' : '🔊'}
       </button>
+
       {/* 3:2 Paper Postcard with 3D Flip */}
       <div className="postcard-wrapper">
         <div
@@ -106,10 +165,19 @@ function App() {
             </div>
           )}
 
-          {/* FRONT FACE: Generative Art Canvas */}
+          {/* FRONT FACE: Generative Art Canvas & Download PNG Button */}
           <div className="postcard-face postcard-face-front">
             {postcardData ? (
-              <PostcardCanvas postcard={postcardData} text={text} />
+              <>
+                <PostcardCanvas ref={canvasRef} postcard={postcardData} text={text} />
+                <button
+                  className="download-front-btn"
+                  onClick={handleDownloadPng}
+                  title="Download Postcard as PNG"
+                >
+                  Download PNG ⤓
+                </button>
+              </>
             ) : (
               <div
                 style={{
@@ -184,6 +252,13 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Step 5: Bottom Corkboard Strip with Taped Thumbnails */}
+      <CorkboardGallery
+        postcards={gallery}
+        onSelectPostcard={handleSelectGalleryItem}
+        activeId={activeCardId}
+      />
 
       {/* Small toggle for debug JSON in the bottom corner */}
       <button
