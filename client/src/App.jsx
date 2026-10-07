@@ -34,9 +34,21 @@ function App() {
   const [gallery, setGallery] = useState(() => loadSavedPostcards());
   // Active selected postcard ID in gallery
   const [activeCardId, setActiveCardId] = useState(null);
+  // Friendly handwritten error note state
+  const [errorNote, setErrorNote] = useState(null);
 
   // Ref to canvas component for downloading PNG and saving thumbnail
   const canvasRef = useRef(null);
+
+  // Fallback postcard used when server request fails
+  const FALLBACK_POSTCARD = {
+    source: 'fallback',
+    mood: 'peaceful',
+    palette: ['#2E4057', '#048A81', '#54C6EB', '#F4D06F'],
+    shapes: 'waves',
+    density: 0.5,
+    caption: 'A gentle rhythm of today',
+  };
 
   // Toggle mute state
   const toggleMute = () => {
@@ -50,10 +62,11 @@ function App() {
   // Send dictation text to backend POST /postcard endpoint
   const handleGenerate = async (e) => {
     if (e) e.stopPropagation();
-    if (!text.trim()) return;
+    if (!text.trim() || loading) return;
 
     setLoading(true);
     setError(null);
+    setErrorNote(null);
 
     try {
       const response = await fetch('http://localhost:5000/postcard', {
@@ -99,7 +112,17 @@ function App() {
         setGallery(updatedGallery);
       }, 350);
     } catch (err) {
+      console.warn('Postcard fetch failed, activating fallback:', err);
       setError(err.message);
+      // Friendly handwritten error note
+      setErrorNote(
+        "Couldn't reach the post office server, so we sketched a peaceful fallback postcard for you. Check your connection and try again anytime."
+      );
+      // Fallback postcard so user can still see art and flip the card
+      setPostcardData(FALLBACK_POSTCARD);
+      setStampKey((prev) => prev + 1);
+      setIsFlipped(false);
+      playRustleSound(isMuted);
     } finally {
       setLoading(false);
     }
@@ -141,6 +164,24 @@ function App() {
 
   return (
     <div className="desk-scene">
+      {/* Friendly handwritten error note if server fails */}
+      {errorNote && (
+        <div className="error-note-wrapper" onClick={(e) => e.stopPropagation()}>
+          <div className="error-note-card">
+            <div className="error-note-pin" />
+            <button
+              className="error-note-close"
+              onClick={() => setErrorNote(null)}
+              title="Dismiss note"
+            >
+              ✕
+            </button>
+            <div className="error-note-title">A quick note from the postmaster...</div>
+            <p className="error-note-text">{errorNote}</p>
+          </div>
+        </div>
+      )}
+
       {/* Audio Mute Toggle Button */}
       <button
         className="mute-toggle-btn"

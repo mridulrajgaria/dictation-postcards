@@ -736,3 +736,181 @@ html, body {
   }
 }
 
+/* =========================================
+   Step 6: Friendly Handwritten Error Note & Responsive Layout
+   ========================================= */
+
+/* Handwritten Sticky Note for Error Feedback */
+.error-note-wrapper {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  max-width: 440px;
+  width: calc(100% - 32px);
+  z-index: 50;
+  animation: noteDropIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
+}
+
+.error-note-card {
+  background: #fef08a;
+  background-image: linear-gradient(135deg, #fffbeb 0%, #fef08a 100%);
+  border: 1px solid #eab308;
+  border-radius: 4px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 14px 18px 12px;
+  position: relative;
+  font-family: 'Caveat', cursive, sans-serif;
+}
+
+.error-note-pin {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 12px;
+  background: rgba(220, 38, 38, 0.65);
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.error-note-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 16px;
+  color: #713f12;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.error-note-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #78350f;
+  margin-bottom: 4px;
+}
+
+.error-note-text {
+  font-size: 19px;
+  color: #451a03;
+  line-height: 1.35;
+  margin: 0;
+}
+
+@keyframes noteDropIn {
+  0% {
+    transform: translateX(-50%) translateY(-20px) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1) rotate(-1deg);
+    opacity: 1;
+  }
+}
+
+/* =========================================
+   Responsive Breakpoints: Laptop & Phone
+   ========================================= */
+
+@media (max-width: 768px) {
+  .desk-scene {
+    padding: 20px 12px;
+  }
+
+  .postcard-face-back {
+    padding: 18px 18px 14px;
+  }
+
+  .postcard-back-body {
+    gap: 12px;
+  }
+
+  .postcard-textarea {
+    font-size: 22px;
+  }
+
+  .stamp-postmark-container {
+    transform: scale(0.8);
+    transform-origin: top right;
+    top: 10px;
+    right: 12px;
+  }
+
+  .address-line {
+    font-size: 20px;
+    min-height: 24px;
+  }
+
+  .corkboard-strip {
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  .desk-scene {
+    padding: 14px 8px;
+  }
+
+  .postcard-wrapper {
+    aspect-ratio: auto;
+    min-height: 480px;
+  }
+
+  .postcard-face-back {
+    padding: 14px 12px 10px;
+  }
+
+  .postcard-back-body {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .postcard-back-divider {
+    display: none;
+  }
+
+  .postcard-back-address {
+    flex-direction: row-reverse;
+    align-items: flex-end;
+    padding-left: 0;
+    margin-top: 8px;
+    border-top: 1px dashed rgba(145, 125, 105, 0.4);
+    padding-top: 8px;
+  }
+
+  .postcard-back-stamp-slot {
+    height: 75px;
+    width: 120px;
+    position: relative;
+  }
+
+  .stamp-postmark-container {
+    transform: scale(0.65);
+    top: -10px;
+    right: 0;
+  }
+
+  .postcard-address-lines {
+    flex: 1;
+    gap: 8px;
+    padding-bottom: 0;
+  }
+
+  .postcard-textarea {
+    font-size: 20px;
+    min-height: 140px;
+  }
+
+  .generate-button {
+    font-size: 19px;
+    padding: 4px 14px;
+  }
+}
+
+
