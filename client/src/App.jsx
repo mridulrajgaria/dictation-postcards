@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PostcardCanvas from './components/PostcardCanvas';
 
 function App() {
   // User's dictated input text
@@ -78,6 +79,7 @@ function App() {
           </div>
           <h3>Returned JSON:</h3>
           <pre>{JSON.stringify(postcardData, null, 2)}</pre>
+          <PostcardCanvas postcard={postcardData} text={text} />
         </div>
       )}
     </div>
