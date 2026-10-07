@@ -330,15 +330,14 @@ const PostcardCanvas = forwardRef(function PostcardCanvas({ postcard, text = '' 
   }, [postcard, text]);
 
   return (
-    <div style={{ marginTop: '20px' }}>
+    <div className="postcard-canvas-container" style={{ width: '100%', height: '100%' }}>
       <canvas
         ref={canvasRef}
         width={900}
         height={600}
         style={{
           width: '100%',
-          maxWidth: '900px',
-          height: 'auto',
+          height: '100%',
           aspectRatio: '3 / 2',
           display: 'block',
           boxSizing: 'border-box',

@@ -15,9 +15,12 @@ function App() {
   const [showDebug, setShowDebug] = useState(false);
   // Key to re-trigger stamp animation on each generation
   const [stampKey, setStampKey] = useState(0);
+  // 3D Card flip state: true shows back (dictation/address), false shows front (generative canvas)
+  const [isFlipped, setIsFlipped] = useState(true);
 
   // Send dictation text to backend POST /postcard endpoint
-  const handleGenerate = async () => {
+  const handleGenerate = async (e) => {
+    if (e) e.stopPropagation();
     if (!text.trim()) return;
 
     setLoading(true);
@@ -39,6 +42,8 @@ function App() {
       const data = await response.json();
       setPostcardData(data);
       setStampKey((prev) => prev + 1);
+      // Automatically flip to front to show the generative art
+      setIsFlipped(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -46,45 +51,105 @@ function App() {
     }
   };
 
+  // Toggle card flip
+  const handleCardClick = () => {
+    setIsFlipped((prev) => !prev);
+  };
+
   return (
     <div className="desk-scene">
-      {/* 3:2 Paper Postcard in the Center of the Desk */}
+      {/* 3:2 Paper Postcard with 3D Flip */}
       <div className="postcard-wrapper">
-        <div className="postcard-card">
-          {/* Step 2: Animated stamp & postmark landing on corner after generate succeeds */}
-          {postcardData && <StampAndPostmark key={stampKey} show={true} />}
+        <div
+          className={`postcard-flipper ${isFlipped ? 'is-flipped' : ''}`}
+          onClick={handleCardClick}
+          title="Click to flip card"
+        >
+          {/* Flip Hint Badge */}
+          {postcardData && (
+            <div className="flip-hint-badge">
+              ↻ {isFlipped ? 'Click to view Front' : 'Click to view Back'}
+            </div>
+          )}
 
-          {/* Handwritten message area with Caveat font */}
-          <textarea
-            className="postcard-textarea"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Press your Wispr Flow hotkey and speak."
-            maxLength={1000}
-            disabled={loading}
-            autoFocus
-          />
+          {/* FRONT FACE: Generative Art Canvas */}
+          <div className="postcard-face postcard-face-front">
+            {postcardData ? (
+              <PostcardCanvas postcard={postcardData} text={text} />
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9c8d80',
+                  fontFamily: 'Caveat, cursive',
+                  fontSize: '28px',
+                  textAlign: 'center',
+                  padding: '20px',
+                }}
+              >
+                <span>Dictation Postcards</span>
+                <span style={{ fontSize: '18px', marginTop: '8px', color: '#b0a396' }}>
+                  Click to write on the back ↻
+                </span>
+              </div>
+            )}
+          </div>
 
-          {/* Postcard footer with character counter and action button */}
-          <div className="postcard-footer">
-            <span className="char-indicator">{text.length}/1000</span>
-            <button
-              className="generate-button"
-              onClick={handleGenerate}
-              disabled={loading || !text.trim()}
-            >
-              {loading ? 'Sketching...' : 'Generate'}
-            </button>
+          {/* BACK FACE: Handwritten Message, Stamp, and "To: Future Me" */}
+          <div className="postcard-face postcard-face-back">
+            <div className="postcard-back-body">
+              {/* Left Side: Handwritten message area */}
+              <div
+                className="postcard-back-message"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <textarea
+                  className="postcard-textarea"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Press your Wispr Flow hotkey and speak."
+                  maxLength={1000}
+                  disabled={loading}
+                  autoFocus
+                />
+
+                {/* Footer with character count and action button */}
+                <div className="postcard-footer">
+                  <span className="char-indicator">{text.length}/1000</span>
+                  <button
+                    className="generate-button"
+                    onClick={handleGenerate}
+                    disabled={loading || !text.trim()}
+                  >
+                    {loading ? 'Sketching...' : 'Generate'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Center Divider Line */}
+              <div className="postcard-back-divider" />
+
+              {/* Right Side: Stamp & "To: Future Me" Address Line */}
+              <div className="postcard-back-address">
+                <div className="postcard-back-stamp-slot">
+                  {postcardData && <StampAndPostmark key={stampKey} show={true} />}
+                </div>
+
+                <div className="postcard-address-lines">
+                  <div className="address-line recipient-line">
+                    <span className="address-label">To:</span> Future Me
+                  </div>
+                  <div className="address-line" />
+                  <div className="address-line" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Render generative art canvas when postcard is generated */}
-      {postcardData && (
-        <div style={{ marginTop: '28px', width: '100%', maxWidth: '820px' }}>
-          <PostcardCanvas postcard={postcardData} text={text} />
-        </div>
-      )}
 
       {/* Small toggle for debug JSON in the bottom corner */}
       <button
