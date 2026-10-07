@@ -4,12 +4,14 @@ import PostcardCanvas from './components/PostcardCanvas';
 function App() {
   // User's dictated input text
   const [text, setText] = useState('');
-  // Returned JSON data from the backend
+  // Returned JSON data from backend
   const [postcardData, setPostcardData] = useState(null);
-  // Loading state indicator
+  // Loading state
   const [loading, setLoading] = useState(false);
-  // Error state for network/request issues
+  // Request error state
   const [error, setError] = useState(null);
+  // Debug JSON panel toggle
+  const [showDebug, setShowDebug] = useState(false);
 
   // Send dictation text to backend POST /postcard endpoint
   const handleGenerate = async () => {
@@ -41,45 +43,68 @@ function App() {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Dictation Postcards</h1>
+    <div className="desk-scene">
+      {/* 3:2 Paper Postcard in the Center of the Desk */}
+      <div className="postcard-wrapper">
+        <div className="postcard-card">
+          {/* Handwritten message area with Caveat font */}
+          <textarea
+            className="postcard-textarea"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Press your Wispr Flow hotkey and speak."
+            maxLength={1000}
+            disabled={loading}
+            autoFocus
+          />
 
-      {/* Large textarea for dictation input */}
-      <div>
-        <textarea
-          rows={8}
-          cols={60}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Dictate or type how your day went..."
-          maxLength={1000}
-          disabled={loading}
-        />
+          {/* Postcard footer with character counter and action button */}
+          <div className="postcard-footer">
+            <span className="char-indicator">{text.length}/1000</span>
+            <button
+              className="generate-button"
+              onClick={handleGenerate}
+              disabled={loading || !text.trim()}
+            >
+              {loading ? 'Sketching...' : 'Generate'}
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Generate button with loading state */}
-      <div style={{ marginTop: '10px' }}>
-        <button onClick={handleGenerate} disabled={loading || !text.trim()}>
-          {loading ? 'Generating...' : 'Generate'}
-        </button>
-      </div>
-
-      {/* Display error if server request fails */}
-      {error && (
-        <div style={{ marginTop: '10px', color: 'red' }}>
-          <p>Error: {error}</p>
+      {/* Render generative art canvas when postcard is generated */}
+      {postcardData && (
+        <div style={{ marginTop: '28px', width: '100%', maxWidth: '820px' }}>
+          <PostcardCanvas postcard={postcardData} text={text} />
         </div>
       )}
 
-      {/* Debug view: show the returned JSON */}
-      {postcardData && (
-        <div style={{ marginTop: '20px' }}>
-          <div>
-            <strong>Source:</strong> {postcardData.source}
+      {/* Small toggle for debug JSON in the bottom corner */}
+      <button
+        className="debug-toggle-btn"
+        onClick={() => setShowDebug((prev) => !prev)}
+        title="Toggle Debug JSON"
+      >
+        {showDebug ? '✕ Debug' : '{ } Debug'}
+      </button>
+
+      {/* Collapsible Debug Panel */}
+      {showDebug && (
+        <div className="debug-panel">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <strong>Debug JSON</strong>
+            {postcardData?.source && (
+              <span style={{ fontSize: '10px', background: '#351d11', padding: '2px 5px', borderRadius: '3px' }}>
+                source: {postcardData.source}
+              </span>
+            )}
           </div>
-          <h3>Returned JSON:</h3>
-          <pre>{JSON.stringify(postcardData, null, 2)}</pre>
-          <PostcardCanvas postcard={postcardData} text={text} />
+          {error && <p style={{ color: '#ff6b6b', margin: '6px 0 0' }}>Error: {error}</p>}
+          {postcardData ? (
+            <pre>{JSON.stringify(postcardData, null, 2)}</pre>
+          ) : (
+            <p style={{ color: '#888', margin: '6px 0 0' }}>No postcard data yet.</p>
+          )}
         </div>
       )}
     </div>
