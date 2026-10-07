@@ -314,6 +314,34 @@ html, body {
   color: #ffffff;
 }
 
+/* Mute Sound Toggle Button */
+.mute-toggle-btn {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  background: rgba(28, 15, 8, 0.75);
+  backdrop-filter: blur(4px);
+  color: #ded1be;
+  border: 1px solid rgba(222, 209, 190, 0.2);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  z-index: 100;
+  transition: background 0.15s, transform 0.15s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.mute-toggle-btn:hover {
+  background: rgba(28, 15, 8, 0.95);
+  color: #ffffff;
+  transform: scale(1.06);
+}
+
 .debug-panel {
   position: fixed;
   bottom: 48px;

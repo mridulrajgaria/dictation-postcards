@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import PostcardCanvas from './components/PostcardCanvas';
 import StampAndPostmark from './components/StampAndPostmark';
+import {
+  playStampSound,
+  playRustleSound,
+  getInitialMuteState,
+  saveMuteState,
+} from './utils/sound';
 
 function App() {
   // User's dictated input text
@@ -17,6 +23,17 @@ function App() {
   const [stampKey, setStampKey] = useState(0);
   // 3D Card flip state: true shows back (dictation/address), false shows front (generative canvas)
   const [isFlipped, setIsFlipped] = useState(true);
+  // Mute state for audio (persisted in localStorage)
+  const [isMuted, setIsMuted] = useState(getInitialMuteState);
+
+  // Toggle mute state
+  const toggleMute = () => {
+    setIsMuted((prev) => {
+      const next = !prev;
+      saveMuteState(next);
+      return next;
+    });
+  };
 
   // Send dictation text to backend POST /postcard endpoint
   const handleGenerate = async (e) => {
@@ -42,6 +59,13 @@ function App() {
       const data = await response.json();
       setPostcardData(data);
       setStampKey((prev) => prev + 1);
+
+      // Play paper rustle and stamp thud sounds
+      playRustleSound(isMuted);
+      setTimeout(() => {
+        playStampSound(isMuted);
+      }, 150);
+
       // Automatically flip to front to show the generative art
       setIsFlipped(false);
     } catch (err) {
@@ -51,13 +75,23 @@ function App() {
     }
   };
 
-  // Toggle card flip
+  // Toggle card flip with rustle sound
   const handleCardClick = () => {
+    playRustleSound(isMuted);
     setIsFlipped((prev) => !prev);
   };
 
   return (
     <div className="desk-scene">
+      {/* Audio Mute Toggle Button */}
+      <button
+        className="mute-toggle-btn"
+        onClick={toggleMute}
+        title={isMuted ? 'Unmute sounds' : 'Mute sounds'}
+        aria-label={isMuted ? 'Unmute sounds' : 'Mute sounds'}
+      >
+        {isMuted ? '🔇' : '🔊'}
+      </button>
       {/* 3:2 Paper Postcard with 3D Flip */}
       <div className="postcard-wrapper">
         <div
