@@ -81,9 +81,9 @@
 
 | Name | Role | Contact |
 | :--- | :--- | :--- |
-| **[Team Member Name]** | Product & Fullstack Engineering | `[email@example.com]` |
-| **[Team Member Name]** | Design & Creative Direction | `[email@example.com]` |
-| **[Team Member Name]** | LLM & Prompt Engineering | `[email@example.com]` |
+| **[Team Member Name]** | Product & Fullstack Engineering | `[iammridul222@gmail.com]` |
+| **[Team Member Name]** | Design & Creative Direction | `[varshaa.6933@gmail.com]` |
+| **[Team Member Name]** | LLM & Prompt Engineering | `[rt3390814@gmail.com]` |
 
 *(Add your team members and contributors above)*
 
